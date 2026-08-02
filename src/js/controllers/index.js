@@ -627,7 +627,7 @@ angular.module('copayApp.controllers').controller('indexController', function($r
 										internalOutputs[output.address] += output.amount;
 								}
 								for (let input of payload.inputs) {
-									const [row] = await db.query(`SELECT outputs.address, wallet 
+									const [row] = await db.query(`SELECT outputs.address, amount, wallet 
 										FROM outputs
 										LEFT JOIN my_addresses USING(address)
 										LEFT JOIN shared_addresses ON shared_addresses.shared_address=outputs.address
@@ -640,10 +640,10 @@ angular.module('copayApp.controllers').controller('indexController', function($r
 												return refuseSignature();
 											}
 											// the input might be from another address of our wallet but we account for it under our main wallet address
-											internalInputs[objAddress.address] += input.amount;
+											internalInputs[objAddress.address] += row.amount;
 										}
 										else if (row.address === top_address)
-											internalInputs[top_address] += input.amount;
+											internalInputs[top_address] += row.amount;
 									}
 								}
 								const net_to_top_address = internalOutputs[top_address] - internalInputs[top_address];
