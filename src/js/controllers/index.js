@@ -900,7 +900,7 @@ angular.module('copayApp.controllers').controller('indexController', function($r
 												return cb2();
 											if (objContract.peer_device_address === from_address)
 												return cb2(); // don't expect this from the peer
-											cb2(true, objContract);
+											cb2(objContract);
 										});
 									}, function(cb2) {
 										arbiter_contract.getByHash(rows[0].hash, function(objContract) {
@@ -910,9 +910,9 @@ angular.module('copayApp.controllers').controller('indexController', function($r
 												return cb2();
 											if (objContract.peer_device_address === from_address)
 												return cb2(); // don't expect this from the peer
-											cb2(true, objContract);
+											cb2(objContract);
 										});
-									}], cb);
+									}], objContract => cb(!!objContract, objContract));
 								} else
 									cb(false);
 							});
