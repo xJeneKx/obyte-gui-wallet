@@ -470,6 +470,7 @@ angular.module('copayApp.controllers').controller('indexController', function($r
 	// units that were already approved or rejected by user.
 	// if there are more than one addresses to sign from, we won't pop up confirmation dialog for each address, instead we'll use the already obtained approval
 	var assocChoicesByUnit = {};
+	var assocChoicesByUnitQuestion = {};
 
 	// objAddress is local wallet address, top_address is the address that requested the signature, 
 	// it may be different from objAddress if it is a shared address
@@ -479,6 +480,7 @@ angular.module('copayApp.controllers').controller('indexController', function($r
 		if (objUnit.messages && objUnit.messages.find(m => !["payment", "profile", "attestation", "data", "data_feed"].includes(m.app)))
 			return console.log("signing request includes forbidden message types, ignoring", objUnit.messages.map(m => m.app));
 		var unit = objUnit.unit;
+		const arrAuthorAddresses = objUnit.authors.map(function(author){ return author.address; });
 		var credentials = lodash.find(profileService.profile.credentials, {walletId: objAddress.wallet});
 
 		mutex.lock(["signing_request-"+unit], function(unlock){
@@ -514,7 +516,7 @@ angular.module('copayApp.controllers').controller('indexController', function($r
 			
 			// apply the previously obtained decision. 
 			// Unless the priv key is encrypted in which case the password request would have appeared from nowhere
-			if (assocChoicesByUnit[unit]){
+			if (assocChoicesByUnit[unit] && arrAuthorAddresses.length === 1){
 				if (assocChoicesByUnit[unit] === "approve")
 					createAndSendSignature();
 				else if (assocChoicesByUnit[unit] === "refuse")
@@ -544,7 +546,6 @@ angular.module('copayApp.controllers').controller('indexController', function($r
 			}
 			
 			walletDefinedByKeys.readChangeAddresses(objAddress.wallet, function(arrChangeAddressInfos){
-				var arrAuthorAddresses = objUnit.authors.map(function(author){ return author.address; });
 				var arrChangeAddresses = arrChangeAddressInfos.map(function(info){ return info.address; });
 				const arrOwnAddresses = [...arrChangeAddresses, top_address, objAddress.address];
 				var arrPaymentMessages = objUnit.messages.filter(function(objMessage){ return (objMessage.app === "payment"); });
@@ -708,14 +709,21 @@ angular.module('copayApp.controllers').controller('indexController', function($r
 						}
 						let question = getQuestion();
 						var ask = function() {
+							const uq = unit + ' ' + question;
+							if (assocChoicesByUnitQuestion[uq] === "approve")
+								return createAndSendSignature();
+							if (assocChoicesByUnitQuestion[uq] === "refuse")
+								return refuseSignature();
 							requestApproval(question, {
 								ifYes: function(){
 									assocChoicesByUnit[unit] = "approve";
+									assocChoicesByUnitQuestion[uq] = "approve";
 									createAndSendSignature();
 								},
 								ifNo: function(){
 									// do nothing
 									assocChoicesByUnit[unit] = "refuse";
+									assocChoicesByUnitQuestion[uq] = "refuse";
 									console.log("===== NO CLICKED");
 									refuseSignature();
 								}
