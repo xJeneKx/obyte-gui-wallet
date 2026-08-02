@@ -769,9 +769,18 @@ angular.module('copayApp.controllers').controller('indexController', function($r
 													cb();
 												}
 											});
-										}], function() {
+										}], async function() {
 											if (!shared_address || shared_address !== arrPaymentMessages[0].payload.outputs[0].address || !lodash.includes(arrAuthorAddresses, shared_address) || shared_address !== contract.shared_address)
 												return cb();
+											for (const input of arrPaymentMessages[0].payload.inputs) {
+												const rows = await db.query(`SELECT address 
+													FROM outputs
+													WHERE unit=? AND message_index=? AND output_index=?`, [input.unit, input.message_index, input.output_index]);
+												if (rows.length > 0 && rows[0].address !== shared_address) {
+													console.log(`input from another address, unit=${input.unit}, message_index=${input.message_index}, output_index=${input.output_index}`);
+													return cb();
+												}
+											}
 											return cb('prosaic', contract);
 										});
 									});
