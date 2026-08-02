@@ -982,7 +982,8 @@ angular.module('copayApp.controllers').controller('indexController', function($r
 							}
 							isContractFeeDepositRequest(function(isContract, objContract){
 								if (isContract) {
-									question = 'Approve contract '+(objContract ? '"' + objContract.title + '" ' : '')+'fee deposit from account '+credentials.walletName+'?';
+									const fee_output = arrPaymentMessages[0].payload.outputs.find(o => o.address === objContract.shared_address);
+									question = 'Approve contract '+(objContract ? '"' + objContract.title + '" ' : '')+fee_output.amount+' bytes fee deposit from account '+credentials.walletName+'?';
 									return ask();
 								}
 								isContractDepositRequest(function(isContract, objContract){
