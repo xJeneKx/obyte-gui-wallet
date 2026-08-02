@@ -884,6 +884,8 @@ angular.module('copayApp.controllers').controller('indexController', function($r
 							db.query("SELECT hash FROM prosaic_contracts WHERE prosaic_contracts.shared_address=? AND prosaic_contracts.status='accepted'\n\
 								UNION SELECT hash FROM wallet_arbiter_contracts WHERE wallet_arbiter_contracts.shared_address=? AND wallet_arbiter_contracts.status='accepted'", [possible_contract_output.address, possible_contract_output.address], function(rows) {
 								if (rows.length === 1) {
+									if (arrAuthorAddresses.includes(possible_contract_output.address))
+										return cb(false); // the contract must not sign a fee deposit
 									async.series([function(cb2) {
 										prosaic_contract.getByHash(rows[0].hash, function(objContract) {
 											if (!objContract)
@@ -927,6 +929,8 @@ angular.module('copayApp.controllers').controller('indexController', function($r
 										return cb(false);
 									if (objContract.peer_device_address === from_address)
 										return cb(false); // don't expect this from the peer
+									if (arrAuthorAddresses.includes(address))
+										return cb(false); // the contract must not sign a deposit
 									var asset = objContract.asset || 'base';
 									if (asset === payment_asset && objContract.amount == amount)
 										return cb(true, objContract);
