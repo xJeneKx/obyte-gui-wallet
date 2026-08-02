@@ -475,6 +475,7 @@ angular.module('copayApp.controllers').controller('indexController', function($r
 	// objAddress is local wallet address, top_address is the address that requested the signature, 
 	// it may be different from objAddress if it is a shared address
 	eventBus.on("signing_request", function(objAddress, top_address, objUnit, assocPrivatePayloads, from_address, signing_path){		
+		const conf = require('ocore/conf.js');
 		var bbWallet = require('ocore/wallet.js');
 		var walletDefinedByKeys = require('ocore/wallet_defined_by_keys.js');
 		if (objUnit.messages && objUnit.messages.find(m => !["payment", "profile", "attestation", "data", "data_feed"].includes(m.app)))
@@ -543,6 +544,17 @@ angular.module('copayApp.controllers').controller('indexController', function($r
 					});
 				});
 				return;
+			}
+
+			if (objUnit.burn_fee) {
+				console.log(`refusing tx with burn fee ${objUnit.burn_fee} from ${from_address}`, objUnit);
+				return refuseSignature();
+			}
+			const size_fees = objUnit.headers_commission + objUnit.payload_commission;
+			const max_fee_ratio = conf.max_fee_ratio || 100;
+			if (objUnit.tps_fee > max_fee_ratio * size_fees) {
+				console.log(`refusing tx with excessive tps fee ${objUnit.tps_fee} (size fees ${size_fees}, max ratio ${max_fee_ratio}) from ${from_address}`, objUnit);
+				return refuseSignature();
 			}
 			
 			walletDefinedByKeys.readChangeAddresses(objAddress.wallet, function(arrChangeAddressInfos){
