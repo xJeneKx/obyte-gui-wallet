@@ -424,7 +424,9 @@ angular.module('copayApp.controllers').controller('indexController', function($r
 			// my own address is not included in arrCorrespondentInfos because I'm not my correspondent
 			var arrNames = arrCorrespondentInfos.map(function(correspondent){ return correspondent.name; });
 			var name_list = arrNames.join(", ");
-			var question = gettextCatalog.getString('Create new account') + ' ' + walletName + ' ' + gettextCatalog.getString('together with') + ' ' + name_list + ' ?';
+			const n = arrWalletDefinitionTemplate[1].set.length;
+			const m = arrWalletDefinitionTemplate[1].required;
+			var question = gettextCatalog.getString('Create a new {{m}}-of-{{n}} account', { m, n }) + ' ' + walletName + ' ' + gettextCatalog.getString('together with') + ' ' + name_list + ' ?';
 			requestApproval(question, {
 				ifYes: function(){
 					console.log("===== YES CLICKED")
@@ -440,8 +442,6 @@ angular.module('copayApp.controllers').controller('indexController', function($r
 								function(){
 									walletClient.credentials.walletId = walletId;
 									walletClient.credentials.network = 'livenet';
-									var n = arrWalletDefinitionTemplate[1].set.length;
-									var m = arrWalletDefinitionTemplate[1].required;
 									walletClient.credentials.addWalletInfo(walletName, m, n);
 									updatePublicKeyRing(walletClient);
 									profileService._addWalletClient(walletClient, {}, function(){
