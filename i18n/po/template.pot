@@ -2560,9 +2560,9 @@ msgid "{{home.custom_amount_error}}"
 msgstr ""
 
 #: public/views/modals/post-send-dag.html:16
-msgid "You added a transaction"
+msgid "You've added your transaction"
 msgstr ""
 
 #: public/views/modals/post-send-dag.html:63
-msgid "View in explorer"
+msgid "View on explorer"
 msgstr ""
